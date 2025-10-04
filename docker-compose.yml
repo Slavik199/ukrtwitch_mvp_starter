@@ -1,22 +1,25 @@
+version: '3'
 services:
   backend:
     build: ./backend
-    container_name: ukrtwitch_backend
     ports:
       - "4000:4000"
-    restart: unless-stopped
-
+    volumes:
+      - ./backend:/app
+      - /app/node_modules
   chat:
     build: ./chat
-    container_name: ukrtwitch_chat
     ports:
       - "5000:5000"
-    restart: unless-stopped
-
+    volumes:
+      - ./chat:/app
+      - /app/node_modules
   frontend:
-    build: ./frontend
-    container_name: ukrtwitch_frontend
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
     ports:
       - "3000:3000"
-    restart: unless-stopped
-
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
