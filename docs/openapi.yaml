@@ -1,0 +1,44 @@
+openapi: 3.0.1
+info:
+  title: UkrTwitch MVP API
+  version: 0.1.0
+servers:
+  - url: http://localhost:4000/api/v1
+paths:
+  /auth/register:
+    post:
+      summary: Register user
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                email: { type: string }
+                password: { type: string }
+                username: { type: string }
+      responses:
+        '201': { description: Created }
+  /auth/login:
+    post:
+      summary: Login
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              properties:
+                email: { type: string }
+                password: { type: string }
+      responses:
+        '200': { description: Tokens }
+  /streams:
+    get:
+      summary: List active streams
+      responses:
+        '200': { description: list }
+    post:
+      summary: Create stream metadata (auth required)
+      responses:
+        '201': { description: created }

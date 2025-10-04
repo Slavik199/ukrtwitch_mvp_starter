@@ -1,0 +1,22 @@
+services:
+  backend:
+    build: ./backend
+    container_name: ukrtwitch_backend
+    ports:
+      - "4000:4000"
+    restart: unless-stopped
+
+  chat:
+    build: ./chat
+    container_name: ukrtwitch_chat
+    ports:
+      - "5000:5000"
+    restart: unless-stopped
+
+  frontend:
+    build: ./frontend
+    container_name: ukrtwitch_frontend
+    ports:
+      - "3000:3000"
+    restart: unless-stopped
+

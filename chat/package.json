@@ -1,0 +1,10 @@
+{
+  "name": "ukrtwitch-chat",
+  "version": "0.1.0",
+  "main": "index.js",
+  "dependencies": {
+    "socket.io": "^4.7.2",
+    "axios": "^1.4.0",
+    "uuid": "^9.0.0"
+  }
+}

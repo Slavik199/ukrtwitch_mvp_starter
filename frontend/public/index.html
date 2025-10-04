@@ -1,0 +1,79 @@
+<!doctype html>
+<html lang="uk">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>UkrTwitch MVP</title>
+  <style>
+    body{font-family:Arial, Helvetica, sans-serif; margin:0; padding:0;}
+    .container{max-width:900px;margin:20px auto;padding:10px}
+    .stream{padding:10px;border:1px solid #ddd;margin-bottom:10px}
+    #player{width:100%;height:360px;background:#000;color:#fff;display:flex;align-items:center;justify-content:center}
+    #chat{border:1px solid #ddd;padding:10px;height:300px;overflow:auto}
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>UkrTwitch — MVP (укр)</h1>
+    <div>
+      <button id="refresh">Оновити список стрімів</button>
+      <button id="mock-create">(Mock) Створити тестовий стрім</button>
+    </div>
+    <div id="list"></div>
+    <hr />
+    <h2>Player</h2>
+    <div id="player">Player (HLS mock)</div>
+    <h3>Chat</h3>
+    <div id="chat"></div>
+    <input id="chat-inp" placeholder="Напиши повідомлення..." style="width:70%" />
+    <button id="send">Відправити</button>
+  </div>
+  <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
+  <script>
+    const API = (window.location.hostname === 'localhost') ? 'http://localhost:4000' : 'http://backend:4000';
+    const CHAT = (window.location.hostname === 'localhost') ? 'http://localhost:5000' : 'http://chat:5000';
+    async function fetchStreams(){
+      const res = await fetch(API + '/api/v1/streams');
+      const data = await res.json();
+      const list = document.getElementById('list');
+      list.innerHTML = '';
+      data.forEach(s=>{
+        const el = document.createElement('div'); el.className='stream';
+        el.innerHTML = `<strong>${s.title}</strong> — ${s.category || ''} — ${s.status} <button data-id='${s.id}'>Watch</button>`;
+        list.appendChild(el);
+        el.querySelector('button').onclick = ()=>{ loadStream(s.id); }
+      })
+    }
+    document.getElementById('refresh').onclick = fetchStreams;
+    document.getElementById('mock-create').onclick = async ()=>{
+      // create a mock stream (no auth in frontend demo)
+      const body = { title: 'Test stream ' + Math.random().toString(36).slice(2,6), category: 'Gaming', streamer_id: 'anonymous' };
+      // call backend directly without auth for demo: backend supports POST but expects auth; we will call via localhost allowed path /api/v1/streams?demo=1
+      await fetch(API + '/api/v1/streams?demo=1', {method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(body)});
+      await fetchStreams();
+    }
+
+    let socket = null;
+    function loadStream(id){
+      document.getElementById('player').textContent = 'Playing stream '+id+' (HLS mock)';
+      if(socket) socket.disconnect();
+      socket = io(CHAT, {query:{streamId:id, username:'guest'}});
+      const chat = document.getElementById('chat'); chat.innerHTML = '';
+      socket.on('connect', ()=>{ console.log('chat connected') });
+      socket.on('msg', (m)=>{
+        const el = document.createElement('div'); el.textContent = (m.user_id||'guest') + ': ' + m.content;
+        chat.appendChild(el);
+      });
+    }
+    document.getElementById('send').onclick = ()=>{
+      const inp = document.getElementById('chat-inp');
+      if(!socket) return alert('Load a stream first');
+      socket.emit('msg', { user_id: 'guest', username: 'guest', content: inp.value });
+      inp.value='';
+    }
+
+    // initial
+    fetchStreams().catch(e=>console.error(e));
+  </script>
+</body>
+</html>
